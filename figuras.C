@@ -10,23 +10,28 @@ class quadrado
 {
   public:
     quadrado(float lado, float centroide_x, float centroide_y, bool subarea);
-  
-  private:
+    RectangleShape quad;
     float lado;
-    Vector2D centroide;
+    Vector2f centroide;
     bool subarea;
 };
 
 quadrado::quadrado(float lado, float centroide_x, float centroide_y, bool subarea = 1)
 {
-  rectangleShape quadrado(Vector2f(lado, lado));
-  quadrado.setPosition(Vector2f(0.0f, 0.0f));
+  RectangleShape quad = RectangleShape(Vector2f(lado, lado));
+  quad.setPosition(Vector2f(0.0f, 0.0f));
 }
 
 int main()
 {
   sf::RenderWindow window(sf::VideoMode(640, 400), "Triangles and lines");
   window.setFramerateLimit(60);
+
+  float lado, x, y;
+
+  std::cin >> lado >> x >> y;
+
+  quadrado *quad = new quadrado(lado, x, y);
 
   while(window.isOpen())
  
@@ -39,6 +44,8 @@ int main()
     }
 
     window.clear(sf::Color(72, 77, 80, 0));
+    
+    window.draw(quad->quad);
 
     window.display();
   }
