@@ -20,14 +20,15 @@ int main()
         window.close();
     }
 
-    window.clear(Color(72, 77, 80, 0));
+    // window.clear(Color(72, 77, 80, 0));
+    window.clear();
 
-    for(float i = 0.0; i < window.getSize().x; i = i + 1.0)
+    for(float i = 0.0; i < window.getSize().x; i = i + 2.0)
     {
       Vertex eixo_y[] = {Vertex(Vector2f(i, 0.0f)), Vertex(Vector2f(i, window.getSize().x))};
       window.draw(eixo_y, 2, Lines);
     }
-    for(float i = 0.0; i < window.getSize().y; i = i + 1.0)
+    for(float i = 0.0; i < window.getSize().y; i = i + 2.0)
     {
       Vertex eixo_x[] = {Vertex(Vector2f(0.0f, i)), Vertex(Vector2f(window.getSize().y, i))};
       window.draw(eixo_x, 2, Lines);
