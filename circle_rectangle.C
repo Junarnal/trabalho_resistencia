@@ -4,7 +4,7 @@
 
 int main()
 {
-  sf::RenderWindow window(sf::VideoMode(640, 400), "SFML works!", sf::Style::Default);
+  sf::RenderWindow window(sf::VideoMode(800, 400), "SFML works!", sf::Style::Default);
   window.setFramerateLimit(60);
 
   sf::CircleShape circle(50.f);
@@ -24,11 +24,11 @@ int main()
         window.close();
     }
 
-    circle.move(0.5f, 0.1f);
-    circle.rotate(2.0f);
+    // circle.move(0.5f, 0.1f);
+    // circle.rotate(2.0f);
 
-    rect.move(-0.5f, -0.1f);
-    rect.rotate(5.0f);
+    // rect.move(-0.5f, -0.1f);
+    // rect.rotate(5.0f);
 
     //Desenhar
     window.clear(sf::Color::Blue);

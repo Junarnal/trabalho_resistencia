@@ -3,6 +3,47 @@
 #include <cstdlib>
 #include <cmath>
 
+using namespace std;
+using namespace sf;
+
+class Retangulo
+{
+public:
+    Retangulo(float base, float altura, float centroide_x, float centroide_y, bool subarea);
+    ~Retangulo();
+    RectangleShape *retangulo;
+
+protected:
+    float base;
+    float altura;
+    float area;
+    bool subarea;
+    sf::Vector2f centroide;
+
+private:
+    RectangleShape* desenha();
+    void calcula_area(float base, float altura);
+    float momento_x();
+    float momento_y();
+    float momento_polar();
+};
+
+Retangulo::Retangulo(float base, float altura, float centroide_x, float centroide_y, bool subarea = 0)
+{
+    this->base = base;
+    this->altura = altura;
+    this->centroide.x = centroide_x;
+    this->centroide.y = centroide_y;
+    this->subarea = subarea;
+    RectangleShape rect(Vector2f(this->base, this->altura));
+    rect.setPosition(sf::Vector2f(0.f, 0.f));
+
+    // rect.setPosition(sf::Vector2f((centroide.x - this->base/2), (centroide.y + this->altura/2)));
+    rect.setFillColor(sf::Color(255, 255, 200, 100));
+    this->retangulo = rect;
+}
+
+
 int main() {
     sf::RenderWindow window(sf::VideoMode(800, 600), "Plano Cartesiano com Grid");
     window.setFramerateLimit(60);
@@ -22,6 +63,8 @@ int main() {
     double multiplicador = 1;
     int expoente = 0;
     int controle = 0;
+
+    Retangulo *rect = new Retangulo(100.f, 100.f, 0.f, 0.f);
     while (window.isOpen())
     {
         sf::Event event;
@@ -183,6 +226,8 @@ int main() {
             };
             window.draw(xAxis, 2, sf::Lines);
         }
+
+        window.draw(rect->retangulo);
 
         window.display();
     }
