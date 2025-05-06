@@ -1,93 +1,52 @@
-from matplotlib import pyplot as plt
-from matplotlib.patches import Rectangle
+import matplotlib.pyplot as plt
 
-class Subarea:
-    def __init__(self, base, altura, cx, cy, adicionar=True):
-        self.base = base
-        self.altura = altura
-        self.cx = cx
-        self.cy = cy
-        self.adicionar = adicionar
+class Plano_Cartesiano:
+    def __init__(self):
+        self.fig, self.ax = plt.subplots(figsize=(10, 10))
+        self.ax.set_xlim(-10, 10)
+        self.ax.set_ylim(-10, 10)
+        self.ax.spines['bottom'].set_position('zero')
+        self.ax.spines['left'].set_position('zero')
+        self.ax.spines['right'].set_color('none')
+        self.ax.spines['top'].set_color('none')
+        self.ax.set_aspect('equal')
+        self.ax.grid(True)
 
-    def Ix_c(self):
-        return (self.base * self.altura ** 3) / 12
+        self.press = False
+        self.mouse_press = None
+        self.xlim_on_press = None
+        self.ylim_on_press = None
 
-    def Iy_c(self):
-        return (self.altura * self.base ** 3) / 12
+        self.fig.canvas.mpl_connect('button_press_event', self.on_press)
+        self.fig.canvas.mpl_connect('motion_notify_event', self.on_motion)
+        self.fig.canvas.mpl_connect('button_release_event', self.on_release)
 
-    def Ix(self, ox):
-        dy = self.cy - ox
-        return self.Ix_c() + self.area() * dy ** 2
+    def on_press(self, event):
+        if event.xdata is not None and event.ydata is not None:
+            self.mouse_press = event
+            self.xlim_on_press = self.ax.get_xlim()
+            self.ylim_on_press = self.ax.get_ylim()
+            self.press = True
 
-    def Iy(self, oy):
-        dx = self.cx - oy
-        return self.Iy_c() + self.area() * dx ** 2
+    def on_motion(self, event):
+        if self.press and event.xdata is not None and event.ydata is not None:
+            dx = event.xdata - self.mouse_press.xdata
+            dy = event.ydata - self.mouse_press.ydata
 
-    def Ixy(self, ox, oy):
-        dx = self.cx - oy
-        dy = self.cy - ox
-        return self.area() * dx * dy
+            # Atualiza os limites dos eixos
+            new_xlim = (self.xlim_on_press[0] - dx, self.xlim_on_press[1] - dx)
+            new_ylim = (self.ylim_on_press[0] - dy, self.ylim_on_press[1] - dy)
 
-    def area(self):
-        return self.base * self.altura if self.adicionar else -self.base * self.altura
+            self.ax.set_xlim(new_xlim)
+            self.ax.set_ylim(new_ylim)
+            self.fig.canvas.draw_idle()
 
-def main():
-    subareas = []
-    print("=== Entrada de subáreas (retângulos) ===")
-    while True:
-        try:
-            b = float(input("Base: "))
-            h = float(input("Altura: "))
-            cx = float(input("Cx (centro em x): "))
-            cy = float(input("Cy (centro em y): "))
-            tipo = input("Adicionar (a) ou Subtrair (s)? [a/s]: ").strip().lower()
-            adicionar = tipo != 's'
-            subareas.append(Subarea(b, h, cx, cy, adicionar))
-        except ValueError:
-            print("Valores inválidos. Tente novamente.")
-            continue
+    def on_release(self, event):
+        self.press = False
 
-        cont = input("Deseja adicionar outra subárea? [s/n]: ").strip().lower()
-        if cont != 's':
-            break
+    def run(self):
+        plt.show()
 
-    try:
-        ox = float(input("Origem Ox: "))
-        oy = float(input("Origem Oy: "))
-    except ValueError:
-        print("Valores inválidos para origem.")
-        return
-
-    Ix = sum(s.Ix(ox) for s in subareas)
-    Iy = sum(s.Iy(oy) for s in subareas)
-    Ixy = sum(s.Ixy(ox, oy) for s in subareas)
-    Jo = Ix + Iy
-
-    print("\n=== Resultados ===")
-    print(f"Ix = {Ix:.2f}")
-    print(f"Iy = {Iy:.2f}")
-    print(f"Ixy = {Ixy:.2f}")
-    print(f"Jo = {Jo:.2f}")
-
-    fig, ax = plt.subplots()
-    for s in subareas:
-        color = 'blue' if s.adicionar else 'red'
-        rect = Rectangle((s.cx - s.base / 2, s.cy - s.altura / 2), s.base, s.altura, fill=True, color=color, alpha=0.5)
-        ax.add_patch(rect)
-
-    ax.axhline(y=ox, color='black', linestyle='--')
-    ax.axvline(x=oy, color='black', linestyle='--')
-    ax.spines['left'].set_position('zero')
-    ax.spines['bottom'].set_position('zero')
-    ax.spines['right'].set_color('none')
-    ax.spines['top'].set_color('none')
-    ax.xaxis.set_ticks_position('bottom')
-    ax.yaxis.set_ticks_position('left')
-    ax.set_aspect('equal')
-    ax.set_title("Área Composta (azul = adição, vermelho = subtração)")
-    ax.grid(True)
-    plt.show()
-
-if __name__ == '__main__':
-    main()
+plano = Plano_Cartesiano()
+plano.run()
 
