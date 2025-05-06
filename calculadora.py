@@ -49,32 +49,47 @@ class Plano_Cartesiano:
         self.fig.canvas.mpl_connect('button_press_event', self.on_press)
         self.fig.canvas.mpl_connect('motion_notify_event', self.on_motion)
         self.fig.canvas.mpl_connect('button_release_event', self.on_release)
+        self.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
         self.press = False
         self.mouse_press = None
-        self.xlim_press = None
-        self.ylim_press = None
+        self.last_mouse_pos = None
+        self.scale = 1.0
 
     def on_press(self, event):
-        self.mouse_press = event
-        self.xlim_press = self.ax.get_xlim()
-        self.ylim_press = self.ax.get_ylim()
+        inv = self.ax.transData.inverted()
+        self.last_mouse_data = inv.transform((event.x, event.y))
         self.press = True
 
     def on_motion(self, event):
         if(self.press):
-            delta_x = event.xdata - self.mouse_press.xdata
-            delta_y = event.ydata - self.mouse_press.ydata
-            new_xlim = (self.xlim_press[0] - delta_x, self.xlim_press[1] - delta_x)
-            new_ylim = (self.ylim_press[0] - delta_x, self.ylim_press[1] - delta_y)
+            inv = self.ax.transData.inverted()
+            current_mouse_data = inv.transform((event.x, event.y))
+            dx = current_mouse_data[0] - self.last_mouse_data[0]
+            dy = current_mouse_data[1] - self.last_mouse_data[1]
 
-            self.ax.set_xlim(new_xlim)
-            self.ax.set_ylim(new_ylim)
-            print(f'new_xlim: {new_xlim}, new_ylim: {new_ylim}')
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
+
+            self.ax.set_xlim(xlim[0] - dx, xlim[1] - dx)
+            self.ax.set_ylim(ylim[0] - dy, ylim[1] - dy)
             self.fig.canvas.draw()
-            #print(delta_x, delta_y)
 
     def on_release(self, event):
         self.press = False
+
+    def on_scroll(self, event):
+        base_escala = 1.2
+        if(event.button == 'up'):
+            self.scale *= base_escala
+        else:
+            self.scale /= base_escala
+
+        xlim = self.ax.get_xlim()
+        ylim = self.ax.get_ylim()
+
+        self.ax.set_xlim(xlim[0] * self.scale, xlim[1] * self.scale)
+        self.ax.set_ylim(ylim[0] * self.scale, ylim[1] * self.scale)
+        self.fig.canvas.draw()
 
     def run(self):
         plt.show()

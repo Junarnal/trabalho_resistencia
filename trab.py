@@ -13,33 +13,31 @@ class Plano_Cartesiano:
         self.ax.grid(True)
 
         self.press = False
-        self.mouse_press = None
-        self.xlim_on_press = None
-        self.ylim_on_press = None
+        self.last_mouse_data = None
 
         self.fig.canvas.mpl_connect('button_press_event', self.on_press)
         self.fig.canvas.mpl_connect('motion_notify_event', self.on_motion)
         self.fig.canvas.mpl_connect('button_release_event', self.on_release)
 
     def on_press(self, event):
-        if event.xdata is not None and event.ydata is not None:
-            self.mouse_press = event
-            self.xlim_on_press = self.ax.get_xlim()
-            self.ylim_on_press = self.ax.get_ylim()
+        if event.x is not None and event.y is not None:
+            inv = self.ax.transData.inverted()
+            self.last_mouse_data = inv.transform((event.x, event.y))
             self.press = True
 
     def on_motion(self, event):
-        if self.press and event.xdata is not None and event.ydata is not None:
-            dx = event.xdata - self.mouse_press.xdata
-            dy = event.ydata - self.mouse_press.ydata
+        if self.press and event.x is not None and event.y is not None:
+            inv = self.ax.transData.inverted()
+            current_mouse_data = inv.transform((event.x, event.y))
+            dx = current_mouse_data[0] - self.last_mouse_data[0]
+            dy = current_mouse_data[1] - self.last_mouse_data[1]
 
-            # Atualiza os limites dos eixos
-            new_xlim = (self.xlim_on_press[0] - dx, self.xlim_on_press[1] - dx)
-            new_ylim = (self.ylim_on_press[0] - dy, self.ylim_on_press[1] - dy)
+            xlim = self.ax.get_xlim()
+            ylim = self.ax.get_ylim()
 
-            self.ax.set_xlim(new_xlim)
-            self.ax.set_ylim(new_ylim)
-            self.fig.canvas.draw_idle()
+            self.ax.set_xlim(xlim[0] - dx, xlim[1] - dx)
+            self.ax.set_ylim(ylim[0] - dy, ylim[1] - dy)
+            self.fig.canvas.draw()
 
     def on_release(self, event):
         self.press = False
