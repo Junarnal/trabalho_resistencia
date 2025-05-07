@@ -1,61 +1,42 @@
-import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 
-class DraggableRectangle:
-    def __init__(self, rect):
-        self.rect = rect
-        self.press = None
+class Retangulo:
+    def __init__(self, base, altura, cx, cy, subtrair=False):
+        self.base = base
+        self.altura = altura
+        self.centroide_x = cx
+        self.centroide_y = cy
+        self.subtrair = subtrair
+        self.area = self.area()
 
-    def connect(self):
-        """Connect to all the events we need."""
-        self.cidpress = self.rect.figure.canvas.mpl_connect(
-            'button_press_event', self.on_press)
-        self.cidrelease = self.rect.figure.canvas.mpl_connect(
-            'button_release_event', self.on_release)
-        self.cidmotion = self.rect.figure.canvas.mpl_connect(
-            'motion_notify_event', self.on_motion)
+    def area(self):
+        if not (self.subtrair):
+            return self.base * self.altura
+        else:
+            return self.base * self.altura * (-1)
 
-    def on_press(self, event):
-        """Check whether mouse is over us; if so, store some data."""
-        if event.inaxes != self.rect.axes:
-            return
-        contains, attrd = self.rect.contains(event)
-        if not contains:
-            return
-        print('event contains', self.rect.xy)
-        self.press = self.rect.xy, (event.xdata, event.ydata)
+    def momento_centroide_x(self):
+       return (self.base * (self.altura ** 3)) / 12
 
-    def on_motion(self, event):
-        """Move the rectangle if the mouse is over us."""
-        if self.press is None or event.inaxes != self.rect.axes:
-            return
-        (x0, y0), (xpress, ypress) = self.press
-        dx = event.xdata - xpress
-        dy = event.ydata - ypress
-        # print(f'x0={x0}, xpress={xpress}, event.xdata={event.xdata}, '
-        #       f'dx={dx}, x0+dx={x0+dx}')
-        self.rect.set_x(x0+dx)
-        self.rect.set_y(y0+dy)
+    def momento_centroide_y(self):
+       return ((self.base ** 3) * self.altura) / 12
 
-        self.rect.figure.canvas.draw()
+    def momento_polar_centroide(self):
+       return 0
 
-    def on_release(self, event):
-        """Clear button press information."""
-        self.press = None
-        self.rect.figure.canvas.draw()
+    def momento_eixo_x(self):
+       return (self.base * (self.altura ** 3)) / 3
 
-    def disconnect(self):
-        """Disconnect all callbacks."""
-        self.rect.figure.canvas.mpl_disconnect(self.cidpress)
-        self.rect.figure.canvas.mpl_disconnect(self.cidrelease)
-        self.rect.figure.canvas.mpl_disconnect(self.cidmotion)
+    def momento_eixo_y(self):
+       return ((self.base ** 3) * self.altura) / 3
 
-fig, ax = plt.subplots()
-rects = ax.bar(range(10), 20*np.random.rand(10))
-drs = []
-for rect in rects:
-    dr = DraggableRectangle(rect)
-    dr.connect()
-    drs.append(dr)
+    def momento_polar_origem(self):
+       return (momento_eixo_x + momento_eixo_y)
 
-plt.show()
+    def desenha(self):
+        if not self.subtrair:
+            return patches.Rectangle((self.centroide_x - (self.base/2), self.centroide_y - (self.altura/2)), self.base, self.altura, linewidth=1, edgecolor='blue', facecolor='cyan')
+        else:
+            return patches.Rectangle(((self.base/2) - self.centroide_x, (self.altura/2) - self.centroide_y), self.base, self.altura, linewidth=1, edgecolor='red', facecolor='orange')
+
