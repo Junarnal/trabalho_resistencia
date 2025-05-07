@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
+import matplotlib.patches as patches
 
 class Retangulo:
     def __init__(self, base, altura, cx, cy, subtrair=False):
@@ -34,33 +34,44 @@ class Retangulo:
     def momento_polar_origem(self):
        return (momento_eixo_x + momento_eixo_y)
 
+    def desenha(self):
+        return 
+
+
 class Plano_Cartesiano:
-    def __init__(self):
+    def __init__(self) -> None:
+        #inicializa o plano
         self.fig, self.ax = plt.subplots(figsize=(10, 10))
-        #fig.patch.set_facecolor('#ffffff')      
+        
+        #define os limites iniciais dos eixos
         self.ax.set_xlim(-10, 10)
         self.ax.set_ylim(-10, 10)
+        
+        #configura o visual do plano
         self.ax.spines['bottom'].set_position('zero')
         self.ax.spines['left'].set_position('zero')
         self.ax.spines['right'].set_color('none')
         self.ax.spines['top'].set_color('none')
         self.ax.set_aspect('equal')
         self.ax.grid(True)
-        self.fig.canvas.mpl_connect('button_press_event', self.on_press)
-        self.fig.canvas.mpl_connect('motion_notify_event', self.on_motion)
-        self.fig.canvas.mpl_connect('button_release_event', self.on_release)
-        self.fig.canvas.mpl_connect('scroll_event', self.on_scroll)
-        self.press = False
-        self.mouse_press = None
-        self.last_mouse_pos = None
-        self.scale = 1.0
 
-    def on_press(self, event):
+        #define as funcoes que receberam os eventos do mouse
+        self.fig.canvas.mpl_connect('button_press_event', self.mouse_press)
+        self.fig.canvas.mpl_connect('motion_notify_event', self.mouse_move)
+        self.fig.canvas.mpl_connect('button_release_event', self.mouse_release)
+        self.fig.canvas.mpl_connect('scroll_event', self.mouse_scroll)
+        self.press = False
+        self.last_mouse_pos = None
+
+        self.rect = patches.Rectangle((0, 0), 2, 3, linewidth=1, edgecolor='r', facecolor="none")
+        self.ax.add_patch(self.rect)
+
+    def mouse_press(self, event) -> None:
         inv = self.ax.transData.inverted()
         self.last_mouse_data = inv.transform((event.x, event.y))
         self.press = True
 
-    def on_motion(self, event):
+    def mouse_move(self, event) -> None:
         if(self.press):
             inv = self.ax.transData.inverted()
             current_mouse_data = inv.transform((event.x, event.y))
@@ -74,21 +85,29 @@ class Plano_Cartesiano:
             self.ax.set_ylim(ylim[0] - dy, ylim[1] - dy)
             self.fig.canvas.draw()
 
-    def on_release(self, event):
+    def mouse_release(self, event) -> None:
         self.press = False
 
-    def on_scroll(self, event):
-        base_escala = 1.2
-        if(event.button == 'up'):
-            self.scale *= base_escala
+    def mouse_scroll(self, event) -> None:
+        if event.xdata is None or event.ydata is None:
+            return
+
+        base_scale = 1.1
+        if event.button == 'up':
+          scale_factor = 1 / base_scale
+        elif event.button == 'down':
+          scale_factor = base_scale
         else:
-            self.scale /= base_escala
+          scale_factor = 1
 
-        xlim = self.ax.get_xlim()
-        ylim = self.ax.get_ylim()
+        curr_xlim = self.ax.get_xlim()
+        curr_ylim = self.ax.get_ylim()
 
-        self.ax.set_xlim(xlim[0] * self.scale, xlim[1] * self.scale)
-        self.ax.set_ylim(ylim[0] * self.scale, ylim[1] * self.scale)
+        new_xlim = [event.xdata - (event.xdata - curr_xlim[0]) * scale_factor, event.xdata + (curr_xlim[1] - event.xdata) * scale_factor]
+        new_ylim = [event.ydata - (event.ydata - curr_ylim[0]) * scale_factor, event.ydata + (curr_ylim[1] - event.ydata) * scale_factor]
+
+        self.ax.set_xlim(new_xlim)
+        self.ax.set_ylim(new_ylim)
         self.fig.canvas.draw()
 
     def run(self):
